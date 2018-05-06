@@ -1,0 +1,34 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDE(s).
+#
+# © EditorConfig.org
+
+# Apply coding styles recursively and define absence
+# of .editorconfig above this directory.
+root = true
+
+[*]
+# Indentation style.
+indent_style = space
+
+# Indentation size.
+indent_size = 2
+
+# File character encoding.
+charset = utf-8
+
+# Line ending file format.
+end_of_line = lf
+
+# Trim whitespace at the end of line.
+trim_trailing_whitespace = true
+
+# File should end with a newline.
+insert_final_newline = true
+
+# Max line length.
+max_line_length = 120
+
+[*.md]
+# Whitespace is allowed at the end of line.
+trim_trailing_whitespace = false
