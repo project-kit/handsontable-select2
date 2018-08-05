@@ -1,0 +1,7 @@
+---
+  extends:
+    - ../tslint.yaml
+  rules:
+    max-classes-per-file: false
+    no-submodule-imports: false
+...

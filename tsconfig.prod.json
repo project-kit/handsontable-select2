@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["library"],
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "typing",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "target": "es5"
+  }
+}

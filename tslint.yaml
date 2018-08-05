@@ -1,0 +1,21 @@
+---
+  extends:
+    - tslint-config-prettier
+    - tslint-consistent-codestyle
+    - tslint-eslint-rules
+    - tslint-microsoft-contrib
+    - tslint-sonarts
+  rules:
+    export-name: false
+    import-name: false
+    interface-name: false
+    missing-jsdoc: false
+    no-any: false
+    no-import-side-effect: false
+    no-jquery-raw-elements: false
+    no-relative-imports: false
+    no-suspicious-comment: false
+    no-unsafe-any: false
+    ordered-imports: false
+    strict-boolean-expressions: false
+...

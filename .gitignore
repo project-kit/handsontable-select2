@@ -1,0 +1,17 @@
+# IDE
+.idea
+.vscode
+
+# NPM
+node_modules
+npm-debug.log
+
+# Build
+rollup.config.*.js
+
+# Tmp
+coverage
+tmp
+
+# System
+.DS_Store
