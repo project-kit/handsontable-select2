@@ -1,9 +1,9 @@
 import jQuery from 'jquery';
 import Handsontable from 'handsontable';
-import { IdTextPair, QueryOptions, Options, Event, DataParams, IngParams } from 'select2';
-import { EditorCell, IdTextPairEvent } from './config';
+import { QueryOptions, Event, DataParams, IngParams } from 'select2';
 import { Adapter } from './adapter';
-import { EditorValue } from './value';
+import { EditorCell, EditorOptions } from './config';
+import { EditorValue, EditorIdText, EditorItem } from './value';
 import { isEqual, compatValue, isNil } from './helper';
 
 /**
@@ -24,12 +24,12 @@ export class Editor extends Handsontable.editors.BaseEditor {
   /**
    * Current value.
    */
-  public value: IdTextPair[];
+  public value: EditorIdText[];
 
   /**
    * Editor options.
    */
-  public options: Options;
+  public options: EditorOptions;
 
   /**
    * Original value.
@@ -59,9 +59,9 @@ export class Editor extends Handsontable.editors.BaseEditor {
   /**
    * Create editor root DOM.
    *
-   * @return Root HTMLElement.
+   * @return jQuery editor element.
    */
-  protected static createEditorDOM(): JQuery {
+  public static createEditorDOM(): JQuery {
     // Create editor root.
     const $root: JQuery = jQuery('<div class="select2-editor"></div>');
 
@@ -69,34 +69,37 @@ export class Editor extends Handsontable.editors.BaseEditor {
     const $content: JQuery = jQuery('<div class="select2-content"></div>');
 
     // Stop bubbling to avoid HT deselectOutside.
-    $root.on('mousedown', (event: JQuery.Event): void => {
-      event.stopPropagation();
-    });
+    $root.on(
+      'mousedown',
+      (event: JQuery.Event): void => {
+        event.stopPropagation();
+      }
+    );
 
-    // Append to root.
+    // Append content to root.
     $root.append($content);
 
-    // Editor root.
+    // Editor root element.
     return $root;
   }
 
   /**
    * Create editor select DOM.
    *
-   * @return Select HTMLElement.
+   * @return jQuery select element.
    */
-  protected static createSelectDOM({ multiple }: Options): JQuery {
+  public static createSelectDOM({ multiple }: EditorOptions): JQuery {
     return jQuery('<select class="select2-target"></select>', { multiple });
   }
 
   /**
    * Editor output value.
    *
-   * @param value Internal value to output value.
+   * @param value Value to be converted output value.
    * @param cellProperties Cell properties.
    * @return Output value.
    */
-  protected static outputValue(value: EditorValue, cellProperties: EditorCell): any {
+  public static outputValue(value: EditorValue, cellProperties: EditorCell): any {
     // Verify transformer function existence.
     if (typeof cellProperties.editorOutput === 'function') {
       return cellProperties.editorOutput(value, cellProperties);
@@ -106,13 +109,13 @@ export class Editor extends Handsontable.editors.BaseEditor {
   }
 
   /**
-   * Create event IdTextPair item.
+   * Create editor item gets from event.
    *
    * @param data Base data.
-   * @param selected Selected state.
-   * @return Created item.
+   * @param selected Selected.
+   * @return Editor item.
    */
-  protected static createEventItem({ id, text }: any, selected: boolean): IdTextPairEvent {
+  public static createEventItem({ id, text }: any, selected: boolean): EditorItem {
     return { id, text, selected };
   }
 
@@ -205,6 +208,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
 
   /**
    * Finish editing.
+   *
    * @param restore Restore original.
    * @param ctrlDown Ctrl down key.
    * @param callback Finish callback.
@@ -397,13 +401,13 @@ export class Editor extends Handsontable.editors.BaseEditor {
    * @param options Select2 options.
    * @return DataAdapter wrapper.
    */
-  protected createDataAdapter(this: Editor, { data }: Options): any {
-    const getValue: Function = (): IdTextPair[] => this.value;
+  protected createDataAdapter(this: Editor, { data }: EditorOptions): any {
+    const getValue: Function = (): EditorIdText[] => this.value;
 
     // Data adapter covers data option.
     return class extends Adapter.DataArray {
       // Retrieve current value.
-      public current(callback: (items: IdTextPair[]) => void): void {
+      public current(callback: (items: EditorIdText[]) => void): void {
         callback(getValue());
       }
 
@@ -420,12 +424,12 @@ export class Editor extends Handsontable.editors.BaseEditor {
    * @return DataAdapter wrapper.
    */
   protected wrapDataAdapter(this: Editor, cellProperties: EditorCell): new () => {} {
-    const getValue: Function = (): IdTextPair[] => this.value;
+    const getValue: Function = (): EditorIdText[] => this.value;
 
     // Wrap adapter class.
     return class extends cellProperties.editorOptions.dataAdapter {
       // Retrieve current value.
-      public current(callback: (items: IdTextPair[]) => void): void {
+      public current(callback: (items: EditorIdText[]) => void): void {
         callback(getValue());
       }
 
@@ -461,25 +465,23 @@ export class Editor extends Handsontable.editors.BaseEditor {
       // Handle change in data.
       .on('select2:unselect', this.unselectedHandler.bind(this))
       // Handle open.
-      .on('select2:open', this.invokeEventHandler.bind(this, 'open'))
+      .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
       // Handle close.
-      .on('select2:close', (event: Event<Element, any>) => {
-        this.invokeEventHandler('close', event);
-      })
-      // Handle opening
+      .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
+      // Handle opening.
       .on('select2:opening', (event: Event<Element, any>) => {
-        // TODO-pk: Fix preventing.
         this.invokeEventHandler('opening', event);
+
+        if (event.isDefaultPrevented() && !this.options.multiple) {
+          this.finishEditing(true);
+        }
       })
-      .on('select2:closing', (event: Event<Element, any>) => {
-        // TODO-pk: Fix preventing.
-        this.invokeEventHandler('closing', event);
-      })
+      .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
       // Handle changing in data.
       .on('select2:selecting', (event: Event<Element, IngParams>) => {
         // Data received from event.
         // TODO-pk: Cast will be removed on select2@next release
-        const selectingItem: IdTextPairEvent = Editor.createEventItem((<any>event.params).args, true);
+        const selectingItem: EditorIdText = Editor.createEventItem((<any>event.params).args, true);
 
         // Invoke event that can change value.
         this.invokeEventHandler('selecting', event, selectingItem);
@@ -488,7 +490,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
       .on('select2:selecting', (event: Event<Element, IngParams>) => {
         // Data received from event.
         // TODO-pk: Cast will be removed on select2@next release
-        const unselectingItem: IdTextPairEvent = Editor.createEventItem((<any>event.params).args, false);
+        const unselectingItem: EditorIdText = Editor.createEventItem((<any>event.params).args, false);
 
         // Invoke event that can change value.
         this.invokeEventHandler('unselecting', event, unselectingItem);
@@ -505,7 +507,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
     const { multiple } = this.options;
 
     // Already selected item.
-    const selectedItem: IdTextPairEvent = Editor.createEventItem(event.params.data, true);
+    const selectedItem: EditorItem = Editor.createEventItem(event.params.data, true);
 
     // Clean up value on single selection.
     if (!multiple) {
@@ -513,7 +515,13 @@ export class Editor extends Handsontable.editors.BaseEditor {
     }
 
     // Copy to create new value.
-    this.value = [...this.value, selectedItem];
+    this.value = [
+      ...this.value,
+      {
+        id: selectedItem.id,
+        text: selectedItem.text
+      }
+    ];
 
     // Invoke event that can change value.
     this.invokeEventHandler('selected', event, selectedItem);
@@ -529,10 +537,10 @@ export class Editor extends Handsontable.editors.BaseEditor {
    */
   protected unselectedHandler(event: Event<Element, DataParams>): void {
     // Already unselected item.
-    const unselectedItem: IdTextPairEvent = Editor.createEventItem(event.params.data, true);
+    const unselectedItem: EditorItem = Editor.createEventItem(event.params.data, true);
 
     // Remove item from array value.
-    this.value = this.value.filter(({ id }: IdTextPair) => {
+    this.value = this.value.filter(({ id }: EditorIdText) => {
       return !isEqual(id, unselectedItem.id);
     });
 

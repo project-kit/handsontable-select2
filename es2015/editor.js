@@ -20,7 +20,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
     /**
      * Create editor root DOM.
      *
-     * @return Root HTMLElement.
+     * @return jQuery editor element.
      */
     static createEditorDOM() {
         // Create editor root.
@@ -31,15 +31,15 @@ export class Editor extends Handsontable.editors.BaseEditor {
         $root.on('mousedown', (event) => {
             event.stopPropagation();
         });
-        // Append to root.
+        // Append content to root.
         $root.append($content);
-        // Editor root.
+        // Editor root element.
         return $root;
     }
     /**
      * Create editor select DOM.
      *
-     * @return Select HTMLElement.
+     * @return jQuery select element.
      */
     static createSelectDOM({ multiple }) {
         return jQuery('<select class="select2-target"></select>', { multiple });
@@ -47,7 +47,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
     /**
      * Editor output value.
      *
-     * @param value Internal value to output value.
+     * @param value Value to be converted output value.
      * @param cellProperties Cell properties.
      * @return Output value.
      */
@@ -59,11 +59,11 @@ export class Editor extends Handsontable.editors.BaseEditor {
         return value;
     }
     /**
-     * Create event IdTextPair item.
+     * Create editor item gets from event.
      *
      * @param data Base data.
-     * @param selected Selected state.
-     * @return Created item.
+     * @param selected Selected.
+     * @return Editor item.
      */
     static createEventItem({ id, text }, selected) {
         return { id, text, selected };
@@ -132,6 +132,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
     }
     /**
      * Finish editing.
+     *
      * @param restore Restore original.
      * @param ctrlDown Ctrl down key.
      * @param callback Finish callback.
@@ -349,20 +350,17 @@ export class Editor extends Handsontable.editors.BaseEditor {
             // Handle change in data.
             .on('select2:unselect', this.unselectedHandler.bind(this))
             // Handle open.
-            .on('select2:open', this.invokeEventHandler.bind(this, 'open'))
+            .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
             // Handle close.
-            .on('select2:close', (event) => {
-            this.invokeEventHandler('close', event);
-        })
-            // Handle opening
+            .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
+            // Handle opening.
             .on('select2:opening', (event) => {
-            // TODO-pk: Fix preventing.
             this.invokeEventHandler('opening', event);
+            if (event.isDefaultPrevented() && !this.options.multiple) {
+                this.finishEditing(true);
+            }
         })
-            .on('select2:closing', (event) => {
-            // TODO-pk: Fix preventing.
-            this.invokeEventHandler('closing', event);
-        })
+            .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
             // Handle changing in data.
             .on('select2:selecting', (event) => {
             // Data received from event.
@@ -395,7 +393,13 @@ export class Editor extends Handsontable.editors.BaseEditor {
             this.value = [];
         }
         // Copy to create new value.
-        this.value = [...this.value, selectedItem];
+        this.value = [
+            ...this.value,
+            {
+                id: selectedItem.id,
+                text: selectedItem.text
+            }
+        ];
         // Invoke event that can change value.
         this.invokeEventHandler('selected', event, selectedItem);
         // After change handler.

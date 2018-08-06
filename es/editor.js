@@ -42,7 +42,7 @@ var Editor = /** @class */ (function (_super) {
     /**
      * Create editor root DOM.
      *
-     * @return Root HTMLElement.
+     * @return jQuery editor element.
      */
     Editor.createEditorDOM = function () {
         // Create editor root.
@@ -53,15 +53,15 @@ var Editor = /** @class */ (function (_super) {
         $root.on('mousedown', function (event) {
             event.stopPropagation();
         });
-        // Append to root.
+        // Append content to root.
         $root.append($content);
-        // Editor root.
+        // Editor root element.
         return $root;
     };
     /**
      * Create editor select DOM.
      *
-     * @return Select HTMLElement.
+     * @return jQuery select element.
      */
     Editor.createSelectDOM = function (_a) {
         var multiple = _a.multiple;
@@ -70,7 +70,7 @@ var Editor = /** @class */ (function (_super) {
     /**
      * Editor output value.
      *
-     * @param value Internal value to output value.
+     * @param value Value to be converted output value.
      * @param cellProperties Cell properties.
      * @return Output value.
      */
@@ -82,11 +82,11 @@ var Editor = /** @class */ (function (_super) {
         return value;
     };
     /**
-     * Create event IdTextPair item.
+     * Create editor item gets from event.
      *
      * @param data Base data.
-     * @param selected Selected state.
-     * @return Created item.
+     * @param selected Selected.
+     * @return Editor item.
      */
     Editor.createEventItem = function (_a, selected) {
         var id = _a.id, text = _a.text;
@@ -156,6 +156,7 @@ var Editor = /** @class */ (function (_super) {
     };
     /**
      * Finish editing.
+     *
      * @param restore Restore original.
      * @param ctrlDown Ctrl down key.
      * @param callback Finish callback.
@@ -389,20 +390,17 @@ var Editor = /** @class */ (function (_super) {
             // Handle change in data.
             .on('select2:unselect', this.unselectedHandler.bind(this))
             // Handle open.
-            .on('select2:open', this.invokeEventHandler.bind(this, 'open'))
+            .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
             // Handle close.
-            .on('select2:close', function (event) {
-            _this.invokeEventHandler('close', event);
-        })
-            // Handle opening
+            .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
+            // Handle opening.
             .on('select2:opening', function (event) {
-            // TODO-pk: Fix preventing.
             _this.invokeEventHandler('opening', event);
+            if (event.isDefaultPrevented() && !_this.options.multiple) {
+                _this.finishEditing(true);
+            }
         })
-            .on('select2:closing', function (event) {
-            // TODO-pk: Fix preventing.
-            _this.invokeEventHandler('closing', event);
-        })
+            .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
             // Handle changing in data.
             .on('select2:selecting', function (event) {
             // Data received from event.
@@ -435,7 +433,12 @@ var Editor = /** @class */ (function (_super) {
             this.value = [];
         }
         // Copy to create new value.
-        this.value = this.value.concat([selectedItem]);
+        this.value = this.value.concat([
+            {
+                id: selectedItem.id,
+                text: selectedItem.text
+            }
+        ]);
         // Invoke event that can change value.
         this.invokeEventHandler('selected', event, selectedItem);
         // After change handler.

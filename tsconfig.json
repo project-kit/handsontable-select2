@@ -1,8 +1,8 @@
 {
-  "include": ["example", "library"],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "module": "es2015",
+    "alwaysStrict": true,
+    "module": "esnext",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "strictNullChecks": true,

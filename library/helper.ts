@@ -1,6 +1,5 @@
-import { IdTextPair } from 'select2';
 import { EditorCell } from './config';
-import { EditorValue } from './value';
+import { EditorValue, EditorIdText } from './value';
 
 /**
  * Determine the belonging of value to the null or undefined type.
@@ -107,7 +106,7 @@ export function toString(value: any): string {
  * @return Internal compatible value.
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
-export function compatValue(value: EditorValue = [], cellProperties: EditorCell): IdTextPair[] {
+export function compatValue(value: EditorValue = [], cellProperties: EditorCell): EditorIdText[] {
   // Getter convert an existing value or return value from another source.
   const { editorInput = null } = cellProperties;
 
@@ -119,7 +118,7 @@ export function compatValue(value: EditorValue = [], cellProperties: EditorCell)
     val = editorInput(cellProperties);
   }
 
-  let outputValue: IdTextPair[] = [];
+  let outputValue: EditorIdText[] = [];
 
   // Strip null like values.
   if (!isNil(val)) {
@@ -132,4 +131,26 @@ export function compatValue(value: EditorValue = [], cellProperties: EditorCell)
   }
 
   return outputValue;
+}
+
+/**
+ * Determine belonging of target to base type.
+ *
+ * @param base Base class.
+ * @param target Class to be checked.
+ * @return True when editor extends Editor; false otherwise.
+ */
+export function isExtends(base: any, target: any = {}): boolean {
+  // Editor prototype.
+  const { prototype = null } = target;
+
+  // End of prototype chain.
+  if (!prototype) {
+    return false;
+  }
+
+  // Compare constructors or/and prototype instance.
+  return (
+    prototype.constructor === base || prototype instanceof base || isExtends(base, Object.getPrototypeOf(prototype))
+  );
 }

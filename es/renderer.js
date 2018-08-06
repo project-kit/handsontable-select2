@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import { compatValue, isNil } from './helper';
 /**
- * Default delimiter to merge multi selection.
+ * Delimiter to merge multi selections.
  */
 var DELIMITER = ', ';
 /**

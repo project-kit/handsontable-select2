@@ -119,4 +119,21 @@ export function compatValue(value = [], cellProperties) {
     }
     return outputValue;
 }
+/**
+ * Determine belonging of target to base type.
+ *
+ * @param base Base class.
+ * @param target Class to be checked.
+ * @return True when editor extends Editor; false otherwise.
+ */
+export function isExtends(base, target = {}) {
+    // Editor prototype.
+    const { prototype = null } = target;
+    // End of prototype chain.
+    if (!prototype) {
+        return false;
+    }
+    // Compare constructors or/and prototype instance.
+    return (prototype.constructor === base || prototype instanceof base || isExtends(base, Object.getPrototypeOf(prototype)));
+}
 //# sourceMappingURL=helper.js.map

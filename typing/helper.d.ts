@@ -1,6 +1,5 @@
-import { IdTextPair } from 'select2';
 import { EditorCell } from './config';
-import { EditorValue } from './value';
+import { EditorValue, EditorIdText } from './value';
 /**
  * Determine the belonging of value to the null or undefined type.
  *
@@ -76,4 +75,12 @@ export declare function toString(value: any): string;
  * @return Internal compatible value.
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
-export declare function compatValue(value: EditorValue, cellProperties: EditorCell): IdTextPair[];
+export declare function compatValue(value: EditorValue, cellProperties: EditorCell): EditorIdText[];
+/**
+ * Determine belonging of target to base type.
+ *
+ * @param base Base class.
+ * @param target Class to be checked.
+ * @return True when editor extends Editor; false otherwise.
+ */
+export declare function isExtends(base: any, target?: any): boolean;

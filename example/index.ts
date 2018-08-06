@@ -1,4 +1,3 @@
-
 // Dependencies.
 import jQuery from 'jquery';
 import Handsontable from 'handsontable';
@@ -14,8 +13,7 @@ select2(null, jQuery);
 
 // Library import.
 import '../library/css/style.css';
-import { isNil } from '../library/helper';
-import { EditorCell, Adapter } from '../library';
+import { EditorCell, Adapter, isNil } from '../library';
 
 // Dummy data.
 import { data } from './fixture/data';
@@ -52,6 +50,9 @@ export const ht: any = new Handsontable(ROOT, {
   rowHeaders: true,
   manualColumnMove: true,
   manualRowMove: true,
+  fillHandle: {
+    autoInsertRow: false
+  },
   columns: [
     {
       data: 'name'
@@ -109,5 +110,26 @@ export const ht: any = new Handsontable(ROOT, {
         }
       }
     }
-  ]
+  ],
+  beforeChange(this: Handsontable, changes: any[], source: string): void {
+    // tslint:disable: no-invalid-this
+    const dragArea: any = this.getSelectedRangeLast();
+
+    if (source === 'Autofill.fill') {
+      if (dragArea) {
+        const { from, to } = <Handsontable.wot.CellRange>dragArea;
+        const dragSize: number = Math.abs(from.row - to.row) + 1;
+
+        changes.forEach((change: any[]) => {
+          const [row, prop] = change;
+
+          if (prop === 'progLang') {
+            const copyFrom: number = from.row + (Math.abs(row - from.row) % dragSize);
+
+            data[this.toPhysicalRow(row)].metadata[prop] = [...(data[copyFrom].metadata[prop] || [])];
+          }
+        });
+      }
+    }
+  }
 });

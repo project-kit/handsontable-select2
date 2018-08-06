@@ -1,11 +1,10 @@
 import Handsontable from 'handsontable';
-import { IdTextPair } from 'select2';
 import { EditorCell } from './config';
-import { EditorValue } from './value';
 import { compatValue, isNil } from './helper';
+import { EditorIdText, EditorValue } from './value';
 
 /**
- * Default delimiter to merge multi selection.
+ * Delimiter to merge multi selections.
  */
 const DELIMITER: string = ', ';
 
@@ -48,7 +47,7 @@ export function renderer(
   // Text displayed in the cell.
   const txt: string = compatValue(value, cellProperties)
     // Retrieve text from each item.
-    .map(({ text }: IdTextPair): string => text)
+    .map(({ text }: EditorIdText): string => text)
     // Join by delimiter.
     .join(isNil(delimiter) ? DELIMITER : delimiter);
 

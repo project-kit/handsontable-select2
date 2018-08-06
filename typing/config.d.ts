@@ -1,6 +1,22 @@
 import Handsontable from 'handsontable';
-import { Options, IdTextPair } from 'select2';
-import { EditorValue } from './value';
+import { Options } from 'select2';
+import { EditorValue, EditorIdText, EditorItem } from './value';
+/**
+ * Handsontable cell properties.
+ *
+ * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+ */
+export declare type HTCell = Handsontable.GridSettings & Handsontable.wot.CellCoords & {
+    prop: any;
+    visualRow: number;
+    visualCol: number;
+};
+/**
+ * Editor options used by select2 plugin.
+ *
+ * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+ */
+export declare type EditorOptions = Options;
 /**
  * Properties generated for each cell using column and individual config.
  *
@@ -15,47 +31,37 @@ import { EditorValue } from './value';
  *
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
-export declare type EditorCell = EditorConfigs & Handsontable.GridSettings & Handsontable.wot.CellCoords & {
-    prop: any;
-    visualRow: number;
-    visualCol: number;
-};
-/**
- * Item received by event.
- */
-export declare type IdTextPairEvent = IdTextPair & {
-    selected: boolean;
-};
+export declare type EditorCell = EditorConfigs & HTCell;
 /**
  * Editor change event.
  *
  * @example
  *
  *   editorEvents:
- *     editorSelecting(event, item, value, cellProperties)
+ *     selecting(event, item, value, cellProperties)
  *
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
-export declare type ChangeEvent = (event: Event, item: IdTextPairEvent, value: IdTextPair[], cellProperties: EditorCell) => undefined;
+export declare type ChangeEvent = (event: Event, item: EditorItem, value: EditorIdText[], cellProperties: EditorCell) => undefined;
 /**
  * Editor state event.
  *
  * @example
  *
  *   editorEvents:
- *     editorOpen(event, value, cellProperties)
+ *     opened(event, value, cellProperties)
  *
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
-export declare type StateEvent = (event: Event, value: IdTextPair[], cellProperties: EditorCell) => undefined;
+export declare type StateEvent = (event: Event, value: EditorIdText[], cellProperties: EditorCell) => undefined;
 /**
  * Editor events.
  *
  * @example
  *
  *   editorEvents:
- *     editorOpening(event, value, cellProperties)
- *     changeSelected(event, item, value, cellProperties)
+ *     opening(event, value, cellProperties)
+ *     selected(event, item, value, cellProperties)
  *
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */
@@ -64,11 +70,11 @@ export interface EditorEvents {
     unselecting: ChangeEvent;
     selected: ChangeEvent;
     unselected: ChangeEvent;
-    open: StateEvent;
-    close: StateEvent;
     opening: StateEvent;
+    opened: StateEvent;
     closing: StateEvent;
-    apply(value: IdTextPair[], cellProperties: EditorCell): undefined;
+    closed: StateEvent;
+    apply(value: EditorIdText[], cellProperties: EditorCell): undefined;
 }
 /**
  * Editor configuration can be specified on:
