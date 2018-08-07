@@ -8,9 +8,11 @@ import autoExternal from 'rollup-plugin-auto-external';
 // Exec: rollup.config.prod.js
 
 // Package config.
-const pkg = require('./package.json');
+// tslint:disable-next-line: no-require-imports no-var-requires
+const pkg: any = require('./package.json');
 
 // Prod config.
+// tslint:disable-next-line: no-default-export
 export default [
   {
     // Bundle entry.
@@ -19,33 +21,23 @@ export default [
     // Bundle output.
     output: [
       {
-        // Output location.
+        // Output file.
         file: pkg.main,
 
-        // Representing iife/umd.
-        name: 'HTSelect2',
+        // UMD export name.
+        name: pkg.config.name,
 
-        // Format of the bundle.
+        // Bundle format.
         format: 'umd',
 
         // Source map.
         sourcemap: true,
 
-        // Global libraries.
+        // Global libs.
         globals: {
           jquery: 'jQuery',
           handsontable: 'Handsontable'
         }
-      },
-      {
-        // Output location.
-        file: pkg.module,
-
-        // Format of the bundle.
-        format: 'es',
-
-        // Source map.
-        sourcemap: true
       }
     ],
 
@@ -71,7 +63,7 @@ export default [
         useTsconfigDeclarationDir: true
       }),
 
-      // Resolve source maps.
+      // Retrieve source maps.
       sourceMaps()
     ]
   }

@@ -1,0 +1,26 @@
+# Programming language.
+language: node_js
+
+# Node.js version.
+node_js:
+  - '10'
+
+# Environment config.
+env:
+  - workerCount=3 timeout=600000
+
+# Infrastructure config.
+sudo: false
+
+# Caching with npm.
+cache:
+  directories:
+    - node_modules
+
+# Install lifecycle.
+install:
+  - npm install
+
+# Script lifecycle.
+script:
+  - npm run test

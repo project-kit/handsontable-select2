@@ -92,5 +92,19 @@ export const data: Data[] = [
     hobby: filterById(hobby, ['1']),
     langLvl: findById(langLevel, 'A2'),
     metadata: {}
+  },
+  {
+    name: 'Matt Cool',
+    progLang: [5, 7],
+    langLvl: findById(langLevel, 'C1'),
+    metadata: {
+      progLang: filterById(progLang, [5, 7])
+    }
+  },
+  {
+    name: 'Yuri Kitana',
+    hobby: filterById(hobby, ['3']),
+    langLvl: findById(langLevel, 'B1'),
+    metadata: {}
   }
 ];

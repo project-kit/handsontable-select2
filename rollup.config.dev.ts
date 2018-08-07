@@ -11,30 +11,31 @@ import html from 'rollup-plugin-generate-html-template';
 // Pwd: <PROJECT_ROOT>
 // Exec: rollup.config.dev.js
 
-// Demo directory.
+// Example directory.
 const example: string = 'example';
 
 // Tmp directory.
 const tmp: string = 'tmp/reload';
 
 // Dev config.
+// tslint:disable-next-line: no-default-export
 export default {
   // Bundle entry.
   input: `${example}/index.ts`,
 
   // Bundle output.
   output: {
-    // Output location.
-    file: `${tmp}/reload.js`,
+    // Output file.
+    file: `${tmp}/index.js`,
 
-    // Format of the bundle.
+    // Bundle format.
     format: 'iife',
 
-    // IIFE name.
-    name: 'Demo',
+    // IIFE export name.
+    name: 'Demo'
   },
 
-  // Do not apply tree-shaking.
+  // Skip tree-shaking.
   treeshake: false,
 
   // External plugins.
@@ -70,7 +71,7 @@ export default {
       template: `${example}/index.html`
     }),
 
-    // Serve using dev-server.
+    // Serve by dev-server.
     serve({
       contentBase: [tmp]
     }),

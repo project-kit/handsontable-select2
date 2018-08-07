@@ -1,5 +1,5 @@
 /**
- * Default adapters used by select2.
+ * Adapters used by select2.
  *
  * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
  */

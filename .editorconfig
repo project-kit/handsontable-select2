@@ -8,27 +8,30 @@
 root = true
 
 [*]
-# Indentation style.
-indent_style = space
+# Character encoding.
+charset = utf-8
+
+# Line ending.
+end_of_line = lf
 
 # Indentation size.
 indent_size = 2
 
-# File character encoding.
-charset = utf-8
+# Indentation style.
+indent_style = space
 
-# Line ending file format.
-end_of_line = lf
-
-# Trim whitespace at the end of line.
-trim_trailing_whitespace = true
-
-# File should end with a newline.
+# End file with a newline.
 insert_final_newline = true
 
 # Max line length.
 max_line_length = 120
 
+# Trim whitespace at the end of line.
+trim_trailing_whitespace = true
+
 [*.md]
+# Max line length.
+max_line_length = 0
+
 # Whitespace is allowed at the end of line.
 trim_trailing_whitespace = false

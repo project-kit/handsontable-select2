@@ -1,8 +1,8 @@
 /// <reference types="jquery" />
 import Handsontable from 'handsontable';
-import { IdTextPair, Options, Event, DataParams } from 'select2';
-import { EditorCell, IdTextPairEvent } from './config';
-import { EditorValue } from './value';
+import { Event, DataParams } from 'select2';
+import { EditorCell, EditorOptions } from './config';
+import { EditorValue, EditorIdText, EditorItem } from './value';
 /**
  * Editor based on select2 and can activated by HT on edit mode.
  *
@@ -21,11 +21,11 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
     /**
      * Current value.
      */
-    value: IdTextPair[];
+    value: EditorIdText[];
     /**
      * Editor options.
      */
-    options: Options;
+    options: EditorOptions;
     /**
      * Original value.
      */
@@ -49,31 +49,31 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
     /**
      * Create editor root DOM.
      *
-     * @return Root HTMLElement.
+     * @return jQuery editor element.
      */
-    protected static createEditorDOM(): JQuery;
+    static createEditorDOM(): JQuery;
     /**
      * Create editor select DOM.
      *
-     * @return Select HTMLElement.
+     * @return jQuery select element.
      */
-    protected static createSelectDOM({ multiple }: Options): JQuery;
+    static createSelectDOM({ multiple }: EditorOptions): JQuery;
     /**
      * Editor output value.
      *
-     * @param value Internal value to output value.
+     * @param value Value to be converted output value.
      * @param cellProperties Cell properties.
      * @return Output value.
      */
-    protected static outputValue(value: EditorValue, cellProperties: EditorCell): any;
+    static outputValue(value: EditorValue, cellProperties: EditorCell): any;
     /**
-     * Create event IdTextPair item.
+     * Create editor item gets from event.
      *
      * @param data Base data.
-     * @param selected Selected state.
-     * @return Created item.
+     * @param selected Selected.
+     * @return Editor item.
      */
-    protected static createEventItem({ id, text }: any, selected: boolean): IdTextPairEvent;
+    static createEventItem({ id, text }: any, selected: boolean): EditorItem;
     /**
      * Editor focus.
      */
@@ -94,6 +94,7 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
     open(): void;
     /**
      * Finish editing.
+     *
      * @param restore Restore original.
      * @param ctrlDown Ctrl down key.
      * @param callback Finish callback.
@@ -162,7 +163,7 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
      * @param options Select2 options.
      * @return DataAdapter wrapper.
      */
-    protected createDataAdapter(this: Editor, { data }: Options): any;
+    protected createDataAdapter(this: Editor, { data }: EditorOptions): any;
     /**
      * Wrap data adapter to give access to cell properties.
      *

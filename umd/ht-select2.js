@@ -1,7 +1,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('jquery'), require('handsontable')) :
     typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'handsontable'], factory) :
-    (factory((global.HTSelect2 = {}),global.jQuery,global.Handsontable));
+    (factory((global.htSelect2 = {}),global.jQuery,global.Handsontable));
 }(this, (function (exports,jQuery,Handsontable) { 'use strict';
 
     jQuery = jQuery && jQuery.hasOwnProperty('default') ? jQuery['default'] : jQuery;
@@ -48,22 +48,34 @@
     };
 
     /**
-     * Default adapters used by select2.
+     * Require select2 definitions by path.
+     *
+     * @param path Require path.
+     */
+    function getByPath(path) {
+        return jQuery.fn.select2.amd.require("select2/" + path);
+    }
+    /**
+     * Adapters used by select2.
      *
      * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
      */
     var adapter = {
+        getByPath: getByPath,
         get DataBase() {
-            return jQuery.fn.select2.amd.require('select2/data/base');
+            return getByPath('data/base');
+        },
+        get DataSelect() {
+            return getByPath('data/select');
         },
         get DataArray() {
-            return jQuery.fn.select2.amd.require('select2/data/array');
+            return getByPath('data/array');
         },
         get DataAjax() {
-            return jQuery.fn.select2.amd.require('select2/data/ajax');
+            return getByPath('data/ajax');
         },
         get DataTags() {
-            return jQuery.fn.select2.amd.require('select2/data/tags');
+            return getByPath('data/tags');
         }
     };
 
@@ -189,6 +201,24 @@
         }
         return outputValue;
     }
+    /**
+     * Determine belonging of target to base type.
+     *
+     * @param base Base class.
+     * @param target Class to be checked.
+     * @return True when editor extends Editor; false otherwise.
+     */
+    function isExtends(base, target) {
+        if (target === void 0) { target = {}; }
+        // Editor prototype.
+        var _a = target.prototype, prototype = _a === void 0 ? null : _a;
+        // End of prototype chain.
+        if (!prototype) {
+            return false;
+        }
+        // Compare constructors or/and prototype instance.
+        return (prototype.constructor === base || prototype instanceof base || isExtends(base, Object.getPrototypeOf(prototype)));
+    }
 
     /**
      * Editor based on select2 and can activated by HT on edit mode.
@@ -212,7 +242,7 @@
         /**
          * Create editor root DOM.
          *
-         * @return Root HTMLElement.
+         * @return jQuery editor element.
          */
         Editor.createEditorDOM = function () {
             // Create editor root.
@@ -223,15 +253,15 @@
             $root.on('mousedown', function (event) {
                 event.stopPropagation();
             });
-            // Append to root.
+            // Append content to root.
             $root.append($content);
-            // Editor root.
+            // Editor root element.
             return $root;
         };
         /**
          * Create editor select DOM.
          *
-         * @return Select HTMLElement.
+         * @return jQuery select element.
          */
         Editor.createSelectDOM = function (_a) {
             var multiple = _a.multiple;
@@ -240,7 +270,7 @@
         /**
          * Editor output value.
          *
-         * @param value Internal value to output value.
+         * @param value Value to be converted output value.
          * @param cellProperties Cell properties.
          * @return Output value.
          */
@@ -252,11 +282,11 @@
             return value;
         };
         /**
-         * Create event IdTextPair item.
+         * Create editor item gets from event.
          *
          * @param data Base data.
-         * @param selected Selected state.
-         * @return Created item.
+         * @param selected Selected.
+         * @return Editor item.
          */
         Editor.createEventItem = function (_a, selected) {
             var id = _a.id, text = _a.text;
@@ -326,6 +356,7 @@
         };
         /**
          * Finish editing.
+         *
          * @param restore Restore original.
          * @param ctrlDown Ctrl down key.
          * @param callback Finish callback.
@@ -559,20 +590,17 @@
                 // Handle change in data.
                 .on('select2:unselect', this.unselectedHandler.bind(this))
                 // Handle open.
-                .on('select2:open', this.invokeEventHandler.bind(this, 'open'))
+                .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
                 // Handle close.
-                .on('select2:close', function (event) {
-                _this.invokeEventHandler('close', event);
-            })
-                // Handle opening
+                .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
+                // Handle opening.
                 .on('select2:opening', function (event) {
-                // TODO-pk: Fix preventing.
                 _this.invokeEventHandler('opening', event);
+                if (event.isDefaultPrevented() && !_this.options.multiple) {
+                    _this.finishEditing(true);
+                }
             })
-                .on('select2:closing', function (event) {
-                // TODO-pk: Fix preventing.
-                _this.invokeEventHandler('closing', event);
-            })
+                .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
                 // Handle changing in data.
                 .on('select2:selecting', function (event) {
                 // Data received from event.
@@ -605,7 +633,12 @@
                 this.value = [];
             }
             // Copy to create new value.
-            this.value = this.value.concat([selectedItem]);
+            this.value = this.value.concat([
+                {
+                    id: selectedItem.id,
+                    text: selectedItem.text
+                }
+            ]);
             // Invoke event that can change value.
             this.invokeEventHandler('selected', event, selectedItem);
             // After change handler.
@@ -680,7 +713,122 @@
     }(Handsontable.editors.BaseEditor));
 
     /**
-     * Default delimiter to merge multi selection.
+     * Autofill source.
+     */
+    var autofillSource = 'Autofill.fill';
+    /**
+     * Autofill metadata.
+     */
+    var autofillMetadata;
+    /**
+     * Retrieve autofill cell value.
+     *
+     * @param data Fill data.
+     * @param row Row index
+     * @param col Col index.
+     * @return Cell value.
+     * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+     */
+    function getAutofillCellValue(data, row, col) {
+        // Row value.
+        var value = data[row % data.length];
+        // Cell value.
+        return value[col % value.length];
+    }
+    /**
+     * Before change hook to correctly clean up cell.
+     *
+     * @param changes Changes to be applied.
+     * @param source Operation causing change.
+     * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+     */
+    function beforeChange(changes, source) {
+        var _this = this;
+        // Iterate changes to analyze cell metadata.
+        changes.forEach(function (change) {
+            // Retrieve editor class.
+            var editor = _this.getCellEditor(change[0], _this.propToCol(change[1]));
+            // New value to be set at cell.
+            var newVal = change[3];
+            // Verify editor to determine that it's suitable to change value to null.
+            if (newVal === '' && (isEqual(editor, Editor) || isExtends(Editor, editor))) {
+                // Replace change new value to null.
+                change[3] = null;
+            }
+        });
+    }
+    /**
+     * Before autofill hook to initialize autofill metadata.
+     *
+     * @param start Start coordinates.
+     * @param end End coordinates.
+     * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+     */
+    function beforeAutofill(start, end) {
+        // Initial autofill metadata.
+        autofillMetadata = { data: [], start: start, end: end };
+    }
+    /**
+     * After set data at cell hook to apply editor value.
+     *
+     * @param changes Changes to be applied.
+     * @param source Operation causing change.
+     * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+     */
+    function afterSetDataAtCell(changes, source) {
+        if (source === autofillSource && autofillMetadata) {
+            // Data to be set as autofilled.
+            var data = autofillMetadata.data;
+            // Clear remaining autofill.
+            autofillMetadata = null;
+            // Clear current changes.
+            changes.length = 0;
+            // Autofill new data.
+            this.setDataAtCell(data, autofillSource);
+        }
+    }
+    /**
+     * Before autofill populate hook to prevent standard duckSchema process.
+     *
+     * @param index Autofill coordinates.
+     * @param direction Fill direction.
+     * @param data Autofill data.
+     * @author Oleksandr Dakal <oleksandr-dakal@project-kit.org>
+     */
+    function beforeAutofillInsidePopulate(index, direction, data) {
+        if (autofillMetadata) {
+            // Cell row index.
+            var cellRow = autofillMetadata.start.row + index.row;
+            // Cell col index.
+            var cellCol = autofillMetadata.start.col + index.col;
+            // Cell autofill value.
+            var cellVal = getAutofillCellValue(data, index.row, index.col);
+            // Original value.
+            var origVal = this.getDataAtCell(cellRow, cellCol);
+            // Check real change.
+            if (!isNil(origVal) || !isNil(cellVal)) {
+                // Cell data must be stored for further processing.
+                autofillMetadata.data.push([cellRow, cellCol, cellVal]);
+            }
+        }
+        // Prevent value processed in standard way.
+        return {
+            value: {
+                __not_existing_to_break_duck_schema__: true
+            }
+        };
+    }
+    // Register global hook to correctly handle cell clean up.
+    Handsontable.hooks.add('beforeChange', beforeChange);
+    // Register global hook tto initialize autofill metadata.
+    Handsontable.hooks.add('beforeAutofill', beforeAutofill);
+    // Register global hook to correctly apply editor value.
+    Handsontable.hooks.add('afterSetDataAtCell', afterSetDataAtCell);
+    // Register global hook to prevent standard duckSchema process.
+    Handsontable.hooks.add('beforeAutofillInsidePopulate', beforeAutofillInsidePopulate);
+
+    /**
+     * Delimiter to merge multi selections.
      */
     var DELIMITER = ', ';
     /**
@@ -736,51 +884,20 @@
         renderer: renderer
     });
 
-    /**
-     * Determine belonging of editor to <#Editor> type.
-     *
-     * @param editor Class to be checked.
-     * @return True when editor extends Editor; false otherwise.
-     */
-    function isExtends(editor) {
-        if (editor === void 0) { editor = {}; }
-        // Editor prototype.
-        var _a = editor.prototype, prototype = _a === void 0 ? null : _a;
-        // End of prototype chain.
-        if (!prototype) {
-            return false;
-        }
-        // Compare constructors or/and prototype instance.
-        return prototype.constructor === Editor || prototype instanceof Editor || isExtends(Object.getPrototypeOf(prototype));
-    }
-    /**
-     * Before change handler to correctly clean up cell.
-     *
-     * @param changes HT changes.
-     * @param source Change source.
-     */
-    function beforeChange(changes, source) {
-        var _this = this;
-        // Iterate changes to analyze cell metadata.
-        changes.forEach(function (change) {
-            // Retrieve editor class.
-            var editor = _this.getCellEditor(change[0], _this.propToCol(change[1]));
-            // New value to be set at cell.
-            var newVal = change[3];
-            // Verify editor to determine that it's suitable to change value to null.
-            if (newVal === '' && (isEqual(editor, Editor) || isExtends(editor))) {
-                // Replace change new value to null.
-                change[3] = null;
-            }
-        });
-    }
-    // Register global hook to correctly handle cell clean up.
-    Handsontable.hooks.add('beforeChange', beforeChange);
+    // tslint:disable-next-line: no-import-side-effect
 
-    exports.Editor = Editor;
     exports.Adapter = adapter;
-    exports.renderer = renderer;
+    exports.Editor = Editor;
+    exports.isNil = isNil;
+    exports.isPrimitive = isPrimitive;
+    exports.isEqual = isEqual;
+    exports.toString = toString;
     exports.compatValue = compatValue;
+    exports.isExtends = isExtends;
+    exports.beforeChange = beforeChange;
+    exports.beforeAutofill = beforeAutofill;
+    exports.afterSetDataAtCell = afterSetDataAtCell;
+    exports.renderer = renderer;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

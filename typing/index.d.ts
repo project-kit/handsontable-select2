@@ -1,8 +1,9 @@
-import './registry';
 import './hook';
+import './registry';
+export * from './adapter';
 export * from './config';
-export { Editor } from './editor';
-export { Adapter } from './adapter';
-export { renderer } from './renderer';
-export { EditorValue } from './value';
-export { compatValue } from './helper';
+export * from './editor';
+export * from './helper';
+export * from './hook';
+export * from './renderer';
+export * from './value';
