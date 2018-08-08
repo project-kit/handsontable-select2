@@ -315,6 +315,8 @@
          * @param initialValue Init value.
          */
         Editor.prototype.beginEditing = function (initialValue) {
+            // Re-initialize original value.
+            this.originalValue = this.instance.getDataAtCell(this.row, this.col);
             // Copy editor options.
             this.options = __assign({}, this.cellProperties.editorOptions);
             // Handle select2 data source.
@@ -488,13 +490,6 @@
             this.triggerSelect2Event('change.select2');
         };
         /**
-         * Refresh query.
-         */
-        Editor.prototype.refreshQuery = function () {
-            this.$select.select2('close');
-            this.$select.select2('open');
-        };
-        /**
          * Refresh cell.
          */
         Editor.prototype.refreshCell = function () {
@@ -583,80 +578,76 @@
                     _this.finishEditing();
                 }
             });
-            // Register standard events.
+            // Register events.
             this.$select
-                // Handle change in data.
-                .on('select2:select', this.selectedHandler.bind(this))
-                // Handle change in data.
-                .on('select2:unselect', this.unselectedHandler.bind(this))
+                // Handle opening.
+                .on('select2:opening', this.invokeEventHandler.bind(this, 'opening'))
                 // Handle open.
                 .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
+                // Handle closing.
+                .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
                 // Handle close.
                 .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
-                // Handle opening.
-                .on('select2:opening', function (event) {
-                _this.invokeEventHandler('opening', event);
-                if (event.isDefaultPrevented() && !_this.options.multiple) {
-                    _this.finishEditing(true);
-                }
-            })
-                .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
                 // Handle changing in data.
-                .on('select2:selecting', function (event) {
-                // Data received from event.
-                // TODO-pk: Cast will be removed on select2@next release
-                var selectingItem = Editor.createEventItem(event.params.args, true);
-                // Invoke event that can change value.
-                _this.invokeEventHandler('selecting', event, selectingItem);
-            })
+                .on('select2:selecting', this.beforeSelect.bind(this))
+                // Handle change in data.
+                .on('select2:select', this.afterSelect.bind(this))
                 // Handle changing in data.
-                .on('select2:selecting', function (event) {
-                // Data received from event.
-                // TODO-pk: Cast will be removed on select2@next release
-                var unselectingItem = Editor.createEventItem(event.params.args, false);
-                // Invoke event that can change value.
-                _this.invokeEventHandler('unselecting', event, unselectingItem);
-            });
+                .on('select2:unselecting', this.beforeUnselect.bind(this))
+                // Handle change in data.
+                .on('select2:unselect', this.afterUnselect.bind(this));
         };
         /**
-         * Handle select event from select2.
+         * Before select hook.
          *
-         * @param event Event object.
+         * @param event Event.
          */
-        Editor.prototype.selectedHandler = function (event) {
-            // Editor options.
-            var multiple = this.options.multiple;
+        Editor.prototype.beforeSelect = function (event) {
+            // Data received from event.
+            var selectingItem = Editor.createEventItem(event.params.args.data, true);
+            // Invoke event that can change value.
+            this.invokeEventHandler('selecting', event, selectingItem);
+            // Check event preventing.
+            if (!event.isDefaultPrevented()) {
+                this.addItem(selectingItem);
+            }
+        };
+        /**
+         * Before unselect hook.
+         *
+         * @param event Event.
+         */
+        Editor.prototype.beforeUnselect = function (event) {
+            // Data received from event.
+            var unselectingItem = Editor.createEventItem(event.params.args.data, false);
+            // Invoke event that can change value.
+            this.invokeEventHandler('unselecting', event, unselectingItem);
+            // Check event preventing.
+            if (!event.isDefaultPrevented()) {
+                this.removeItem(unselectingItem);
+            }
+        };
+        /**
+         * After select hook.
+         *
+         * @param event Event.
+         */
+        Editor.prototype.afterSelect = function (event) {
             // Already selected item.
             var selectedItem = Editor.createEventItem(event.params.data, true);
-            // Clean up value on single selection.
-            if (!multiple) {
-                this.value = [];
-            }
-            // Copy to create new value.
-            this.value = this.value.concat([
-                {
-                    id: selectedItem.id,
-                    text: selectedItem.text
-                }
-            ]);
             // Invoke event that can change value.
             this.invokeEventHandler('selected', event, selectedItem);
             // After change handler.
             this.afterChangeHandler();
         };
         /**
-         * Handle unselect event from select2.
+         * After unselect hook.
          *
-         * @param event Event object.
+         * @param event Event.
          */
-        Editor.prototype.unselectedHandler = function (event) {
+        Editor.prototype.afterUnselect = function (event) {
             // Already unselected item.
             var unselectedItem = Editor.createEventItem(event.params.data, true);
-            // Remove item from array value.
-            this.value = this.value.filter(function (_a) {
-                var id = _a.id;
-                return !isEqual(id, unselectedItem.id);
-            });
             // Invoke event that can change value.
             this.invokeEventHandler('unselected', event, unselectedItem);
             // After change handler.
@@ -666,6 +657,8 @@
          * After change handler.
          */
         Editor.prototype.afterChangeHandler = function () {
+            // Select2 instance.
+            var instance = this.$select.data('select2');
             // Editor options.
             var _a = this.options, closeOnSelect = _a.closeOnSelect, multiple = _a.multiple;
             // Refresh editor after handler invoked.
@@ -676,9 +669,42 @@
                     this.finishEditing();
                 }
             }
-            else if (multiple) {
-                this.refreshQuery();
+            if (multiple && instance.dropdown) {
+                if (typeof instance.dropdown._positionDropdown === 'function') {
+                    instance.dropdown._positionDropdown();
+                }
+                if (typeof instance.dropdown._resizeDropdown === 'function') {
+                    instance.dropdown._resizeDropdown();
+                }
             }
+        };
+        /**
+         * Add item to editor value.
+         *
+         * @param item Editor item.
+         */
+        Editor.prototype.addItem = function (_a) {
+            var id = _a.id, text = _a.text;
+            // Editor options.
+            var multiple = this.options.multiple;
+            // Clean up value on single selection.
+            if (!multiple) {
+                this.value = [];
+            }
+            // Copy to create new value.
+            this.value = this.value.concat([{ id: id, text: text }]);
+        };
+        /**
+         * Remove item from editor value.
+         *
+         * @param item Editor item.
+         */
+        Editor.prototype.removeItem = function (_a) {
+            var id = _a.id;
+            // Remove item from array value.
+            this.value = this.value.filter(function (val) {
+                return !isEqual(val.id, id);
+            });
         };
         /**
          * Invoke specified event handler.
@@ -704,7 +730,7 @@
                         // Always include current value and cell properties
                         args.push(_this.value, _this.cellProperties);
                         // Invoke handler with specified arguments
-                        editorEvents[key].apply(null, args);
+                        editorEvents[key].apply(_this, args);
                     }
                 }
             });

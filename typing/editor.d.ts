@@ -1,6 +1,6 @@
 /// <reference types="jquery" />
 import Handsontable from 'handsontable';
-import { Event, DataParams } from 'select2';
+import { Event, DataParams, IngParams } from 'select2';
 import { EditorCell, EditorOptions } from './config';
 import { EditorValue, EditorIdText, EditorItem } from './value';
 /**
@@ -144,10 +144,6 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
      */
     refreshEditor(): void;
     /**
-     * Refresh query.
-     */
-    refreshQuery(): void;
-    /**
      * Refresh cell.
      */
     refreshCell(): void;
@@ -176,21 +172,45 @@ export declare class Editor extends Handsontable.editors.BaseEditor {
      */
     protected registerEvents(): void;
     /**
-     * Handle select event from select2.
+     * Before select hook.
      *
-     * @param event Event object.
+     * @param event Event.
      */
-    protected selectedHandler(event: Event<Element, DataParams>): void;
+    protected beforeSelect(event: Event<Element, IngParams>): void;
     /**
-     * Handle unselect event from select2.
+     * Before unselect hook.
      *
-     * @param event Event object.
+     * @param event Event.
      */
-    protected unselectedHandler(event: Event<Element, DataParams>): void;
+    protected beforeUnselect(event: Event<Element, IngParams>): void;
+    /**
+     * After select hook.
+     *
+     * @param event Event.
+     */
+    protected afterSelect(event: Event<Element, DataParams>): void;
+    /**
+     * After unselect hook.
+     *
+     * @param event Event.
+     */
+    protected afterUnselect(event: Event<Element, DataParams>): void;
     /**
      * After change handler.
      */
     protected afterChangeHandler(): void;
+    /**
+     * Add item to editor value.
+     *
+     * @param item Editor item.
+     */
+    protected addItem({ id, text }: EditorItem): void;
+    /**
+     * Remove item from editor value.
+     *
+     * @param item Editor item.
+     */
+    protected removeItem({ id }: EditorItem): void;
     /**
      * Invoke specified event handler.
      *

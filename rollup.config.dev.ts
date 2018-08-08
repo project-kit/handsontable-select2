@@ -5,6 +5,7 @@ import postcss from 'rollup-plugin-postcss';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import typescript from 'rollup-plugin-typescript2';
+import sourceMaps from 'rollup-plugin-sourcemaps';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import html from 'rollup-plugin-generate-html-template';
 
@@ -32,7 +33,10 @@ export default {
     format: 'iife',
 
     // IIFE export name.
-    name: 'Demo'
+    name: 'Demo',
+
+    // Source map.
+    sourcemap: true
   },
 
   // Skip tree-shaking.
@@ -60,10 +64,14 @@ export default {
       cacheRoot: 'tmp/.ts_cache',
       tsconfigOverride: {
         compilerOptions: {
+          target: 'es5',
           sourcemap: true
         }
       }
     }),
+
+    // Retrieve source map.
+    sourceMaps(),
 
     // Auto-inject the resulting rollup bundle
     // via a script tag into a HTML template.
