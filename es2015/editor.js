@@ -91,6 +91,8 @@ export class Editor extends Handsontable.editors.BaseEditor {
      * @param initialValue Init value.
      */
     beginEditing(initialValue) {
+        // Re-initialize original value.
+        this.originalValue = this.instance.getDataAtCell(this.row, this.col);
         // Copy editor options.
         this.options = Object.assign({}, this.cellProperties.editorOptions);
         // Handle select2 data source.
@@ -262,13 +264,6 @@ export class Editor extends Handsontable.editors.BaseEditor {
         this.triggerSelect2Event('change.select2');
     }
     /**
-     * Refresh query.
-     */
-    refreshQuery() {
-        this.$select.select2('close');
-        this.$select.select2('open');
-    }
-    /**
      * Refresh cell.
      */
     refreshCell() {
@@ -343,80 +338,76 @@ export class Editor extends Handsontable.editors.BaseEditor {
                 this.finishEditing();
             }
         });
-        // Register standard events.
+        // Register events.
         this.$select
-            // Handle change in data.
-            .on('select2:select', this.selectedHandler.bind(this))
-            // Handle change in data.
-            .on('select2:unselect', this.unselectedHandler.bind(this))
+            // Handle opening.
+            .on('select2:opening', this.invokeEventHandler.bind(this, 'opening'))
             // Handle open.
             .on('select2:open', this.invokeEventHandler.bind(this, 'opened'))
+            // Handle closing.
+            .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
             // Handle close.
             .on('select2:close', this.invokeEventHandler.bind(this, 'closed'))
-            // Handle opening.
-            .on('select2:opening', (event) => {
-            this.invokeEventHandler('opening', event);
-            if (event.isDefaultPrevented() && !this.options.multiple) {
-                this.finishEditing(true);
-            }
-        })
-            .on('select2:closing', this.invokeEventHandler.bind(this, 'closing'))
             // Handle changing in data.
-            .on('select2:selecting', (event) => {
-            // Data received from event.
-            // TODO-pk: Cast will be removed on select2@next release
-            const selectingItem = Editor.createEventItem(event.params.args, true);
-            // Invoke event that can change value.
-            this.invokeEventHandler('selecting', event, selectingItem);
-        })
+            .on('select2:selecting', this.beforeSelect.bind(this))
+            // Handle change in data.
+            .on('select2:select', this.afterSelect.bind(this))
             // Handle changing in data.
-            .on('select2:selecting', (event) => {
-            // Data received from event.
-            // TODO-pk: Cast will be removed on select2@next release
-            const unselectingItem = Editor.createEventItem(event.params.args, false);
-            // Invoke event that can change value.
-            this.invokeEventHandler('unselecting', event, unselectingItem);
-        });
+            .on('select2:unselecting', this.beforeUnselect.bind(this))
+            // Handle change in data.
+            .on('select2:unselect', this.afterUnselect.bind(this));
     }
     /**
-     * Handle select event from select2.
+     * Before select hook.
      *
-     * @param event Event object.
+     * @param event Event.
      */
-    selectedHandler(event) {
-        // Editor options.
-        const { multiple } = this.options;
+    beforeSelect(event) {
+        // Data received from event.
+        const selectingItem = Editor.createEventItem(event.params.args.data, true);
+        // Invoke event that can change value.
+        this.invokeEventHandler('selecting', event, selectingItem);
+        // Check event preventing.
+        if (!event.isDefaultPrevented()) {
+            this.addItem(selectingItem);
+        }
+    }
+    /**
+     * Before unselect hook.
+     *
+     * @param event Event.
+     */
+    beforeUnselect(event) {
+        // Data received from event.
+        const unselectingItem = Editor.createEventItem(event.params.args.data, false);
+        // Invoke event that can change value.
+        this.invokeEventHandler('unselecting', event, unselectingItem);
+        // Check event preventing.
+        if (!event.isDefaultPrevented()) {
+            this.removeItem(unselectingItem);
+        }
+    }
+    /**
+     * After select hook.
+     *
+     * @param event Event.
+     */
+    afterSelect(event) {
         // Already selected item.
         const selectedItem = Editor.createEventItem(event.params.data, true);
-        // Clean up value on single selection.
-        if (!multiple) {
-            this.value = [];
-        }
-        // Copy to create new value.
-        this.value = [
-            ...this.value,
-            {
-                id: selectedItem.id,
-                text: selectedItem.text
-            }
-        ];
         // Invoke event that can change value.
         this.invokeEventHandler('selected', event, selectedItem);
         // After change handler.
         this.afterChangeHandler();
     }
     /**
-     * Handle unselect event from select2.
+     * After unselect hook.
      *
-     * @param event Event object.
+     * @param event Event.
      */
-    unselectedHandler(event) {
+    afterUnselect(event) {
         // Already unselected item.
         const unselectedItem = Editor.createEventItem(event.params.data, true);
-        // Remove item from array value.
-        this.value = this.value.filter(({ id }) => {
-            return !isEqual(id, unselectedItem.id);
-        });
         // Invoke event that can change value.
         this.invokeEventHandler('unselected', event, unselectedItem);
         // After change handler.
@@ -426,6 +417,8 @@ export class Editor extends Handsontable.editors.BaseEditor {
      * After change handler.
      */
     afterChangeHandler() {
+        // Select2 instance.
+        const instance = this.$select.data('select2');
         // Editor options.
         const { closeOnSelect, multiple } = this.options;
         // Refresh editor after handler invoked.
@@ -436,9 +429,40 @@ export class Editor extends Handsontable.editors.BaseEditor {
                 this.finishEditing();
             }
         }
-        else if (multiple) {
-            this.refreshQuery();
+        if (multiple && instance.dropdown) {
+            if (typeof instance.dropdown._positionDropdown === 'function') {
+                instance.dropdown._positionDropdown();
+            }
+            if (typeof instance.dropdown._resizeDropdown === 'function') {
+                instance.dropdown._resizeDropdown();
+            }
         }
+    }
+    /**
+     * Add item to editor value.
+     *
+     * @param item Editor item.
+     */
+    addItem({ id, text }) {
+        // Editor options.
+        const { multiple } = this.options;
+        // Clean up value on single selection.
+        if (!multiple) {
+            this.value = [];
+        }
+        // Copy to create new value.
+        this.value = [...this.value, { id, text }];
+    }
+    /**
+     * Remove item from editor value.
+     *
+     * @param item Editor item.
+     */
+    removeItem({ id }) {
+        // Remove item from array value.
+        this.value = this.value.filter((val) => {
+            return !isEqual(val.id, id);
+        });
     }
     /**
      * Invoke specified event handler.
@@ -458,7 +482,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
                     // Always include current value and cell properties
                     args.push(this.value, this.cellProperties);
                     // Invoke handler with specified arguments
-                    editorEvents[key].apply(null, args);
+                    editorEvents[key].apply(this, args);
                 }
             }
         });

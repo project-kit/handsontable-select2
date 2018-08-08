@@ -1,7 +1,7 @@
 {
   "name": "@project-kit/handsontable-select2",
-  "version": "1.0.0-rc.2",
-  "description": "Handsontable cell based on select2",
+  "version": "1.0.0",
+  "description": "Handsontable editor and cell based on select2",
   "homepage": "https://github.com/project-kit/handsontable-select2",
   "license": "MIT",
   "repository": {
@@ -19,9 +19,9 @@
   "keywords": [
     "handsontable",
     "integration",
+    "select2",
     "dropdown",
     "renderer",
-    "select2",
     "editor",
     "cell"
   ],
@@ -50,7 +50,7 @@
     "precss": "^3.1.2",
     "prettier": "^1.14.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.64.0",
+    "rollup": "^0.64.1",
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-commonjs": "^9.1.4",
     "rollup-plugin-generate-html-template": "^1.1.0",
@@ -66,7 +66,7 @@
     "tslint-config-prettier": "^1.14.0",
     "tslint-consistent-codestyle": "^1.13.3",
     "tslint-eslint-rules": "^5.3.1",
-    "tslint-microsoft-contrib": "^5.1.0",
+    "tslint-microsoft-contrib": "^5.2.0",
     "tslint-sonarts": "^1.7.0",
     "typescript": "^2.9.2"
   },
@@ -81,7 +81,7 @@
     "check": "npm-check --skip-unused",
     "clear:tmp": "rimraf tmp",
     "clear:typing": "rimraf typing",
-    "build:css": "rimraf css && postcss -u autoprefixer precss -o css/style.css library/css/*",
+    "build:css": "rimraf css && postcss -m -u autoprefixer precss -o css/style.css library/css/*",
     "build:es": "rimraf es && tsc -p tsconfig.prod.json --outDir es",
     "build:es2015": "rimraf es2015 && tsc -p tsconfig.prod.json -t es2015 --outDir es2015",
     "build:bundle": "rimraf umd && run-s rollup && rollup -c rollup.config.prod.js",
