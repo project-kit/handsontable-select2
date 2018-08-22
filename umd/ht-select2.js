@@ -466,12 +466,12 @@
             // New value need to be refreshed in cell.
             var value = this.instance.getDataAtCell(this.cellProperties.visualRow, this.cellProperties.visualCol);
             // HT clean up without active editor.
-            if (!value && !this.isActive()) {
+            if (!this.isActive()) {
                 if (isEqual(this.originalValue, value)) {
                     value = this.originalValue;
                 }
                 else {
-                    value = Editor.outputValue(null, this.cellProperties);
+                    value = Editor.outputValue(value, this.cellProperties);
                 }
                 // Current value
                 this.value = value;
@@ -898,13 +898,10 @@
     }
 
     // Register editor.
-    // TODO: Cast will be removed on HT@next release
     Handsontable.editors.registerEditor('Select2Editor', Editor);
     // Register renderer.
-    // TODO: Cast will be removed on HT@next release
     Handsontable.renderers.registerRenderer('Select2Renderer', renderer);
     // Register cell.
-    // TODO: Cast will be removed on HT@next release
     Handsontable.cellTypes.registerCellType('select2', {
         editor: Editor,
         renderer: renderer

@@ -3,4 +3,4 @@
 * text=auto
 
 # Normalize line endings to LF.
-*.*      text eol=lf
+*.* text eol=lf

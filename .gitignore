@@ -12,7 +12,7 @@ rollup.config.*.js
 
 # Tmp
 coverage
-tmp
+temporary
 
 # System
 .DS_Store

@@ -58,7 +58,7 @@ export default [
       // Convert TS strict syntactical superset of JavaScript
       // to plain browser compatible JS.
       typescript({
-        cacheRoot: 'tmp/.ts_cache',
+        cacheRoot: 'temporary/.ts_cache',
         tsconfig: './tsconfig.prod.json',
         useTsconfigDeclarationDir: true
       }),

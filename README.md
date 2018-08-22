@@ -1,3 +1,8 @@
-# handsontable-select2
+Handsontable editor based on select2 plugin.
 
-Documentation still pending.
+## Installation
+
+Stable version:
+```bash
+npm i @project-kit/handsontable-select2 --save
+```

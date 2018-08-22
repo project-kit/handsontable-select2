@@ -16,7 +16,7 @@ import html from 'rollup-plugin-generate-html-template';
 const example: string = 'example';
 
 // Tmp directory.
-const tmp: string = 'tmp/reload';
+const tmp: string = 'temporary/reload';
 
 // Dev config.
 // tslint:disable-next-line: no-default-export
@@ -61,7 +61,7 @@ export default {
     // Convert TS strict syntactical superset of JavaScript
     // to plain browser compatible JS.
     typescript({
-      cacheRoot: 'tmp/.ts_cache',
+      cacheRoot: 'temporary/.ts_cache',
       tsconfigOverride: {
         compilerOptions: {
           target: 'es5',

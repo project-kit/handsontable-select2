@@ -15,6 +15,7 @@
     overflow: visible;
     position: relative;
     top: 0;
+    z-index: 11;
   }
 
   .select2-content {
