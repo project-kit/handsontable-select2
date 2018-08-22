@@ -20,7 +20,6 @@ rules:
   no-implicit-dependencies: [true, 'dev']
   no-jquery-raw-elements: false
   no-relative-imports: false
-  no-suspicious-comment: false
   no-unsafe-any: false
   ordered-imports: false
   strict-boolean-expressions: false

@@ -1,7 +1,7 @@
 {
   "name": "@project-kit/handsontable-select2",
-  "version": "1.0.0",
-  "description": "Handsontable editor and cell based on select2",
+  "version": "1.0.1",
+  "description": "Handsontable editor based on select2",
   "homepage": "https://github.com/project-kit/handsontable-select2",
   "license": "MIT",
   "repository": {
@@ -79,7 +79,7 @@
   },
   "scripts": {
     "check": "npm-check --skip-unused",
-    "clear:tmp": "rimraf tmp",
+    "clear:tmp": "rimraf temporary",
     "clear:typing": "rimraf typing",
     "build:css": "rimraf css && postcss -m -u autoprefixer precss -o css/style.css library/css/*",
     "build:es": "rimraf es && tsc -p tsconfig.prod.json --outDir es",

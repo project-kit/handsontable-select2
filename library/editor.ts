@@ -338,11 +338,11 @@ export class Editor extends Handsontable.editors.BaseEditor {
     let value: any = this.instance.getDataAtCell(this.cellProperties.visualRow, this.cellProperties.visualCol);
 
     // HT clean up without active editor.
-    if (!value && !this.isActive()) {
+    if (!this.isActive()) {
       if (isEqual(this.originalValue, value)) {
         value = this.originalValue;
       } else {
-        value = Editor.outputValue(null, this.cellProperties);
+        value = Editor.outputValue(value, this.cellProperties);
       }
 
       // Current value
