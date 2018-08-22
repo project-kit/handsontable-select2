@@ -273,10 +273,10 @@ var Editor = /** @class */ (function (_super) {
             else {
                 value = Editor.outputValue(value, this.cellProperties);
             }
-            // Current value
-            this.value = value;
             // Assign new original value.
             this.originalValue = value;
+            // Current value.
+            this.setValue(this.originalValue);
             // Trigger event to finalize editor.
             this.invokeEventHandler('apply');
             // Refresh cell.
