@@ -21,5 +21,6 @@ rules:
   no-jquery-raw-elements: false
   no-relative-imports: false
   no-unsafe-any: false
+  no-unnecessary-class: false
   ordered-imports: false
   strict-boolean-expressions: false

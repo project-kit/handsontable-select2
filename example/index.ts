@@ -13,7 +13,7 @@ select2(null, jQuery);
 
 // Library import.
 import '../library/css/style.css';
-import { EditorCell, Adapter, isNil } from '../library';
+import { EditorCell, Data, isNil } from '../library';
 
 // Dummy data.
 import { data } from './fixture/data';
@@ -24,7 +24,7 @@ import { langLevel } from './fixture/langLevel';
 /**
  * Demo adapter.
  */
-abstract class DemoAdapter extends Adapter.DataArray {
+abstract class DemoAdapter extends Data.Array {
   // Options to be shown in editor.
   public abstract options: IdTextPair[];
 
@@ -115,21 +115,19 @@ export const ht: any = new Handsontable(ROOT, {
     // tslint:disable: no-invalid-this
     const dragArea: any = this.getSelectedRangeLast();
 
-    if (source === 'Autofill.fill') {
-      if (dragArea) {
-        const { from, to } = <Handsontable.wot.CellRange>dragArea;
-        const dragSize: number = Math.abs(from.row - to.row) + 1;
+    if (source === 'Autofill.fill' && dragArea) {
+      const { from, to } = <Handsontable.wot.CellRange>dragArea;
+      const dragSize: number = Math.abs(from.row - to.row) + 1;
 
-        changes.forEach((change: any[]) => {
-          const [row, prop] = change;
+      changes.forEach((change: any[]) => {
+        const [row, prop] = change;
 
-          if (prop === 'progLang') {
-            const copyFrom: number = from.row + (Math.abs(row - from.row) % dragSize);
+        if (prop === 'progLang') {
+          const copyFrom: number = from.row + (Math.abs(row - from.row) % dragSize);
 
-            data[this.toPhysicalRow(row)].metadata[prop] = [...(data[copyFrom].metadata[prop] || [])];
-          }
-        });
-      }
+          data[this.toPhysicalRow(row)].metadata[prop] = [...(data[copyFrom].metadata[prop] || [])];
+        }
+      });
     }
   }
 });

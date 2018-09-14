@@ -4,7 +4,7 @@ import './hook';
 // tslint:disable-next-line: no-import-side-effect
 import './registry';
 
-export * from './adapter';
+export * from './select2';
 export * from './config';
 export * from './editor';
 export * from './helper';

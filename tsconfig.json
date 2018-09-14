@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
-    "module": "esnext",
+    "module": "es2015",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "strictNullChecks": true,

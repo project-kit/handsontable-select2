@@ -1,7 +1,7 @@
 import jQuery from 'jquery';
 import Handsontable from 'handsontable';
 import { QueryOptions, Event, DataParams, IngParams } from 'select2';
-import { Adapter } from './adapter';
+import { Data } from './select2/data';
 import { EditorCell, EditorOptions } from './config';
 import { EditorValue, EditorIdText, EditorItem } from './value';
 import { isEqual, compatValue, isNil } from './helper';
@@ -400,7 +400,7 @@ export class Editor extends Handsontable.editors.BaseEditor {
     const getValue: Function = (): EditorIdText[] => this.value;
 
     // Data adapter covers data option.
-    return class extends Adapter.DataArray {
+    return class extends Data.Array {
       // Retrieve current value.
       public current(callback: (items: EditorIdText[]) => void): void {
         callback(getValue());
@@ -555,10 +555,8 @@ export class Editor extends Handsontable.editors.BaseEditor {
     this.refreshEditor();
 
     // On single selection editor can be closed.
-    if (closeOnSelect) {
-      if (!multiple) {
-        this.finishEditing();
-      }
+    if (closeOnSelect && !multiple) {
+      this.finishEditing();
     }
 
     if (multiple && instance.dropdown) {

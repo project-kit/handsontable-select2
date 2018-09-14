@@ -3,7 +3,7 @@ import { Editor } from './editor';
 import { renderer } from './renderer';
 
 // Register editor.
-(<any>Handsontable.editors).registerEditor('Select2Editor', Editor);
+Handsontable.editors.registerEditor('Select2Editor', Editor);
 
 // Register renderer.
 (<any>Handsontable.renderers).registerRenderer('Select2Renderer', renderer);
