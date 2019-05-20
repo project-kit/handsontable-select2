@@ -376,7 +376,8 @@ export class Editor extends Handsontable.editors.BaseEditor {
     const renderer: Function = this.instance.getCellRenderer(visualRow, visualCol);
 
     // Invoke renderer.
-    renderer(this.instance, this.TD, visualRow, visualCol, this.prop, this.value, this.cellProperties);
+    renderer(this.instance, this.instance.getCell(visualRow, visualCol), visualRow, visualCol, this.prop,
+      this.value, this.cellProperties);
   }
 
   /**

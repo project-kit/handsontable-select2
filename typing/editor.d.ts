@@ -1,4 +1,3 @@
-/// <reference types="jquery" />
 import Handsontable from 'handsontable';
 import { Event, DataParams, IngParams } from 'select2';
 import { EditorCell, EditorOptions } from './config';
