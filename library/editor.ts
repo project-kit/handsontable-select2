@@ -540,6 +540,10 @@ export class Editor extends Handsontable.editors.BaseEditor {
 
     // After change handler.
     this.afterChangeHandler();
+
+    // clear search text field
+    // @ts-ignore
+    this.$select.$search.val('');
   }
 
   /**
